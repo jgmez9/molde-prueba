@@ -7,35 +7,43 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Role } from '../../../common/enum/role.enum.js';
 import { v7 as uuidv7 } from 'uuid';
+import { Role } from '../../../common/enum/role.enum.js';
 
 @Entity('users')
 export class User {
   @PrimaryColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  @Column({ unique: true })
+  @Column({
+    type: 'varchar',
+    length: 150,
+    unique: true,
+  })
   email: string;
 
   @Exclude()
-  @Column()
+  @Column({ type: 'varchar', select: true })
   password: string;
 
-  @Column({ type: 'enum', enum: Role, default: Role.USER })
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.TECHNICIAN,
+  })
   role: Role;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 
   @BeforeInsert()
-  generarId() {
+  generateId(): void {
     if (!this.id) {
       this.id = uuidv7();
     }

@@ -7,14 +7,21 @@ import {
 import { map, Observable } from 'rxjs';
 
 @Injectable()
-export class TransformInterceptor implements NestInterceptor {
+export class TransformInterceptor
+  implements NestInterceptor
+{
   intercept(
     context: ExecutionContext,
-    next: CallHandler<any>,
-  ): Observable<any> {
+    next: CallHandler,
+  ): Observable<unknown> {
+    const httpContext = context.switchToHttp();
+
+    const response = httpContext.getResponse();
+
     return next.handle().pipe(
-      map((data) => ({
+      map((data: unknown) => ({
         success: true,
+        statusCode: response.statusCode,
         data,
         timestamp: new Date().toISOString(),
       })),

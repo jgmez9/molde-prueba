@@ -15,25 +15,44 @@ export class JwtAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
   ) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+  async canActivate(
+    context: ExecutionContext,
+  ): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(
+      IS_PUBLIC_KEY,
+      [
+        context.getHandler(),
+        context.getClass(),
+      ],
+    );
 
-    if (isPublic) return true;
+    if (isPublic) {
+      return true;
+    }
 
     const request = context.switchToHttp().getRequest();
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+
+    const authorization = request.headers.authorization;
+
+    const [type, token] = authorization?.split(' ') ?? [];
+
     if (type !== 'Bearer' || !token) {
-      throw new UnauthorizedException('Token required');
+      throw new UnauthorizedException(
+        'Se requiere un token Bearer',
+      );
     }
 
     try {
-      request.user = await this.jwtService.verifyAsync(token);
+      const payload =
+        await this.jwtService.verifyAsync(token);
+
+      request.user = payload;
     } catch {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException(
+        'El token es inválido o ha expirado',
+      );
     }
+
     return true;
   }
 }
